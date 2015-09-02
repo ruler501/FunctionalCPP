@@ -1,5 +1,5 @@
-#ifndef _HASKELL_H_
-#define _HASKELL_H_
+#ifndef _PRELUDE_H_
+#define _PRELUDE_H_
 
 #include <algorithm>
 #include <iostream>
@@ -83,6 +83,7 @@ namespace prelude{
         return std::vector<T>(list.rbegin(), list.rend());
     }
 
+    //! \note also the same as return in Haskell, but return is a keyword in C++
     template<typename T>
     std::vector<T> pure(T a){
         return std::vector<T>(1,a);
@@ -99,7 +100,8 @@ namespace prelude{
         if(list.empty()) return false;
         return f(list.front()) || any(f, std::vector<T>(list.begin()+1, list.end()));
     }
-        
+    
+    //! \note Called break in Haskell, but that's a reserved keyword in C++
     template<typename T, typename Callable>
     std::pair<std::vector<T>, std::vector<T> > split(Callable f, std::vector<T> list){
         auto i = std::find_if(list.begin(), list.end(), f);
@@ -118,6 +120,27 @@ namespace prelude{
         return (a < b ? LT : a == b ? EQ : GT);
     }
     
+    //! \note In Haskell this throws an exception if c is not a digit
+    //! we just return -1 to be more C-like
+    int digitToInt(char c){
+        if('0' <= c && c <= '9') return c-'0';
+        if('a' <= c && c <= 'z') return c-'a'+10;
+        if('A' <= c && c <= 'Z') return c-'A'+10;
+        return -1;
+    }
+    
+    template<typename T>
+    std::vector<T> drop(int n, std::vector<T> list){
+        if(n <= 0 || list.empty()) return list;
+        return drop(n-1, std::vector<T>(list.begin()+1, list.end()));
+    }
+    
+    template<typename T, typename Callable>
+    std::vector<T> dropWhile(Callable f, std::vector<T> list){
+        if(list.empty() || !f(list.front())) return list;
+        return dropWhile(f, std::vector<T>(list.begin()+1, list.end()));
+    }
+    
     template<typename T, typename Callable>
     typename std::result_of<Callable(T)>::type operator>>=(std::vector<T> a, Callable f){
         return concat(map(a,f));
@@ -134,4 +157,4 @@ namespace prelude{
         return prepend(a, repeat(n-1, a));
     }
 }
-#endif //_HASKELL_H_
+#endif //_PRELUDE_H_
