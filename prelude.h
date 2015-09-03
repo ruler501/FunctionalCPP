@@ -40,17 +40,25 @@ namespace prelude{
             out.insert(out.end(), i->begin(), i->end());
         return out;
     }
+    
+    //! \note I don't think there's a way to do this without modifying an object
+    template<typename T>
+    std::string show(T a){
+        std::istringstream out;
+        out << a;
+        return out.str();
+    }
 
 /********************************************************************************
  * End Non Functional Section                                         *
  ********************************************************************************/
 
     template<typename T, typename Callable>
-    std::vector<typename std::result_of<Callable(T)>::type> map(std::vector<T> list,
-                       Callable f){
+    std::vector<typename std::result_of<Callable(T)>::type> map(Callable f,
+                                                                std::vector<T> list){
         if(list.empty()) return std::vector<typename std::result_of<Callable(T)>::type>();
         return prepend(f(list.front()),
-                      map(std::vector<T>(list.begin()+1, list.end()), f));
+                      map(f, std::vector<T>(list.begin()+1, list.end())));
     }
 
     template<typename T, typename U, typename R, typename Callable>
@@ -72,10 +80,17 @@ namespace prelude{
     }
 
     template<typename T, typename U, typename Callable>
-    U foldl(std::vector<T> list, Callable f, U svalue){
+    U foldl(Callable f, U svalue, std::vector<T> list){
         if(list.empty()) return svalue;
-        return foldl(std::vector<T>(list.begin()+1, list.end()),
-                     f, f(svalue, list.front()));
+        return foldl(f, f(svalue, list.front()),
+                     std::vector<T>(list.begin()+1, list.end()));
+    }
+    
+    template<typename T, typename U, typename Callable>
+    U foldr(Callable f, U svalue, std::vector<T> list){
+        if(list.empty()) return svalue;
+        return foldr(f, f(list.back(), svalue),
+                     std::vector<T>(list.begin(), list.end()-1));
     }
 
     template<typename T>
@@ -135,15 +150,249 @@ namespace prelude{
         return drop(n-1, std::vector<T>(list.begin()+1, list.end()));
     }
     
+    //! \note is implemented functionally, but could also be done with find_if
     template<typename T, typename Callable>
     std::vector<T> dropWhile(Callable f, std::vector<T> list){
         if(list.empty() || !f(list.front())) return list;
         return dropWhile(f, std::vector<T>(list.begin()+1, list.end()));
     }
     
+    template<typename T>
+    bool elem(T a, std::vector<T> list){
+        return std::find(list.begin(), list.end(), a) != list.end();
+    }
+    
+    template<typename T>
+    bool even(T n){
+        return !(n & 1);
+    }
+    
+    template<typename T, typename Callable>
+    std::vector<T> filter(Callable f, std::vector<T> list){
+        if(list.empty()) return std::vector<T>();
+        if(f(list.front())) return prepend(list.front(), filter(f, std::vector<T>(list.begin()+1, list.end())));
+        return filter(f, std::vector<T>(list.begin()+1, list.end()));
+    }
+    
+    template<typename T, typename U>
+    T fst(std::pair<T,U> a){
+        return a.first;
+    }
+    
+    //! \note We return -1 when both are zero unlike Haskell which throws an exception
+    template<typename T>
+    T gcd(T a, T b){
+        if(b == 0){
+            if(a == 0) return -1;
+            return a;
+        }
+        return gcd(b, a % b);
+    }
+    
+    template<typename T>
+    T head(std::vector<T> list){
+        return list.front();
+    }
+    
+    template<typename T>
+    T id(T a){
+        return a;
+    }
+    
+    template<typename T>
+    std::vector<T> init(std::vector<T> list){
+        return std::vector<T>(list.begin(), list.end()-1);
+    }
+    
+    bool isAlpha(char c){
+        return ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'));
+    }
+    
+    bool isDigit(char c){
+        return (c >= '0' && c <= '9');
+    }
+    
+    bool isLower(char c){
+        return (c >= 'a' && c <= 'z');
+    }
+    
+    bool isSpace(char c){
+        return (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v');
+    }
+    
+    bool isUpper(char c){
+        return (c >= 'A' && c <= 'Z');
+    }
+    
+    //! \todo Implement some vector like type for infinite lists for now
+    //! you'll have to specify the number of iterations per call
+    template<typename T, typename Callable>
+    std::vector<T> iterate(Callable f, T svalue, int N){
+        if(N == 0) return std::vector<T>();
+        return prepend(svalue, iterate(f, f(svalue), N-1));
+    }
+    
+    template<typename T>
+    T last(std::vector<T> list){
+        return list.back();
+    }
+    
+    template<typename T>
+    T lcm(T a, T b){
+        if(a == 0 || b == 0) return 0;
+        return ((a/gcd(a,b))*b);
+    }
+    
+    template<typename T>
+    size_t length(std::vector<T> list){
+        return list.size();
+    }
+    
+    std::vector<std::string> lines(std::string str){
+        if(str.empty()) return std::vector<std::string>();
+        auto i = std::find(str.begin(), str.end(), '\n');
+        if(i != str.end()) return prepend(std::string(str.begin(), i), lines(std::string(i+1, str.end())));
+        return std::vector<std::string>(1,str);
+    }
+    
+    template<typename T>
+    T maximum(std::vector<T> list){
+        return *std::max_element(list.begin(), list.end());
+    }
+    
+    template<typename T>
+    T minimum(std::vector<T> list){
+        return *std::min_element(list.begin(), list.end());
+    }
+    
+    template<typename T>
+    T mod(T a, T b){
+        return a % b;
+    }
+    
+    template<typename T>
+    bool notElem(T a, std::vector<T> list){
+        return !elem(a, list);
+    }
+    
+    template<typename T>
+    bool null(std::vector<T> list){
+        return list.empty();
+    }
+    
+    template<typename T>
+    bool odd(T a){
+        return (a & 1);
+    }
+    
+    void putStr(std::string str){
+        std::cout << str;
+    }
+    
+    template<typename T>
+    T product(std::vector<T> list){
+        return foldl(std::multiplies<T>(), 1, list);
+    }
+    
+    template<typename T>
+    T quot(T a, T b){
+        return a/b;
+    }
+    
+    template<typename T>
+    T rem(T a, T b){
+        return a % b;
+    }
+    
+    //! \note Currently the same as \a repeat
+    template<typename T>
+    std::vector<T> replicate(int n, T a){
+        if(n <= 0) return std::vector<T>();
+        return prepend(a, replicate(n-1, a));
+    }
+    
+    template<typename T, typename U>
+    U snd(std::pair<T, U> a){
+        return a.second;
+    }
+    
+    template<typename T, typename Callable>
+    std::pair<std::vector<T>, std::vector<T> > span(Callable f, std::vector<T> list){
+        return split([f](T a){return !f(a);}, list);
+    }
+    
+    template<typename T>
+    std::pair<std::vector<T>, std::vector<T> > splitAt(int n, std::vector<T> list){
+        if(n > list.size()) return std::make_pair(list, std::vector<T>());
+        return std::make_pair(std::vector<T>(list.begin(), list.begin()+n),
+                              std::vector<T>(list.begin()+n, list.end()));
+    }
+    
+    template<typename T>
+    T subtract(T a, T b){
+        return a - b;
+    }
+    
+    template<typename T>
+    T sum(std::vector<T> list){
+        return foldl(std::plus<T>(), 0, list);
+    }
+    
+    template<typename T>
+    std::vector<T> tail(std::vector<T> list){
+        return std::vector<T>(list.begin()+1, list.end());
+    }
+    
+    template<typename T>
+    std::vector<T> take(int n, std::vector<T> list){
+        if(n > list.size()) return list;
+        return std::vector<T>(list.begin(), list.begin()+n);
+    }
+    
+    template<typename T, typename Callable>
+    std::vector<T> takeWhile(Callable f, std::vector<T> list){
+        if(list.empty()) return list;
+        if(!f(list.front())) return std::vector<T>();
+        return prepend(list.front(), takeWhile(f, std::vector<T>(list.begin()+1, list.end())));
+    }
+    
+    char toLower(char c){
+        if(isUpper(c)) return c - 'A' + 'a';
+        return c;
+    }
+    
+    char toUpper(char c){
+        if(isLower(c)) return c - 'a' + 'A';
+        return c;
+    }
+    
+    std::string unlines(std::vector<std::string> list){
+        return foldl(std::plus<std::string>(), std::string(),
+                     map([](std::string str){return str+'\n';}, list));
+    }
+    
+    template<typename T, typename Callable, typename Predicate>
+    T until(Predicate p, Callable f, T svalue){
+        if(p(svalue)) return svalue;
+        return until(p, f, f(svalue));
+    }
+    
+    std::string unwords(std::vector<std::string> list){
+        std::string tStr(foldl(std::plus<std::string>(), std::string(),
+                               map([](std::string str){return str+' ';}, list)));
+        return std::string(tStr.begin(), tStr.end()-1);
+    }
+    
+    std::vector<std::string> words(std::string str){
+        if(str.empty()) return std::vector<std::string>();
+        auto i = std::find_if(str.begin(), str.end(), isSpace);
+        if(i != str.end()) return prepend(std::string(str.begin(), i), lines(std::string(i+1, str.end())));
+        return std::vector<std::string>(1,str);
+    }
+    
     template<typename T, typename Callable>
     typename std::result_of<Callable(T)>::type operator>>=(std::vector<T> a, Callable f){
-        return concat(map(a,f));
+        return concat(map(f,a));
     }
 
     template<typename T, typename U>
@@ -151,10 +400,11 @@ namespace prelude{
         return a >>= [&](std::vector<T> m){return b;};
     }
 
+    //! \todo Needs infinite lists, for now parameter for size will have to do
     template<typename T>
-    std::vector<T> repeat(int n, T a){
+    std::vector<T> repeat(T a, int n){
         if(n <= 0) return std::vector<T>();
-        return prepend(a, repeat(n-1, a));
+        return prepend(a, repeat(a, n-1));
     }
 }
 #endif //_PRELUDE_H_
