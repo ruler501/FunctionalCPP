@@ -9,6 +9,9 @@
 
 #include "type_classes.h"
 
+//! \todo Using directives for the missing std library functions so they also appear here
+//! \todo Implement the functions that return functions in some nice way
+
 namespace prelude{
 
 /********************************************************************************
@@ -126,16 +129,11 @@ namespace prelude{
                               std::vector<T>(i, list.end()));
     }
     
-    enum Ordering{
-        LT = -1,
-        EQ,
-        GT
-    };
-    
-    template<typename T>
+    //Should be implemented in the Ord type class
+    /*template<typename T>
     Ordering compare(T a, T b){
         return (a < b ? LT : a == b ? EQ : GT);
-    }
+    }*/
     
     //! \note In Haskell this throws an exception if c is not a digit
     //! we just return -1 to be more C-like
@@ -391,7 +389,18 @@ namespace prelude{
         if(i != str.end()) return prepend(std::string(str.begin(), i), lines(std::string(i+1, str.end())));
         return std::vector<std::string>(1,str);
     }
+
+    //! \todo Needs infinite lists, for now parameter for size will have to do
+    template<typename T>
+    std::vector<T> repeat(T a, int n){
+        if(n <= 0) return std::vector<T>();
+        return prepend(a, repeat(a, n-1));
+    }
     
+/********************************************************************************
+ * Type Class default instances here                                  *
+ ********************************************************************************/
+ 
     template<typename T, typename Callable>
     typename std::result_of<Callable(T)>::type operator>>=(std::vector<T> a, Callable f){
         return concat(map(f,a));
@@ -400,13 +409,6 @@ namespace prelude{
     template<typename T, typename U>
     std::vector<U> operator>>(std::vector<T> a, std::vector<U> b){
         return a >>= [&](std::vector<T> m){return b;};
-    }
-
-    //! \todo Needs infinite lists, for now parameter for size will have to do
-    template<typename T>
-    std::vector<T> repeat(T a, int n){
-        if(n <= 0) return std::vector<T>();
-        return prepend(a, repeat(a, n-1));
     }
 }
 #endif //_PRELUDE_H_

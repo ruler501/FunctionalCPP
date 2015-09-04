@@ -1,7 +1,71 @@
 #ifndef _TYPE_CLASSES_H_
 #define _TYPE_CLASSES_H_
 
+//! \todo Default implementations?
+//! \todo Compile time checking of requirements
+//! \note Need a Rational type to implement Fractional, Integral, and Real
+
 namespace prelude{
+    template<typename T>
+    struct Eq{
+        //bool operator==(T,T)
+        //bool operator!=(T,T)
+        
+        //(x == y)  = !(x != y)
+        
+        static constexpr bool is_valid = false;
+    };
+    
+    enum Ordering{
+        LT = -1,
+        EQ,
+        GT
+    };
+    
+    template<typename T>
+    struct Ord : public Eq{
+        //Ordering compare(T,T)
+        //bool operator<, operator<=, operator>=, operator>(T,T)
+        //T max,min(T,T)
+        
+        static constexpr bool is_valid = false;
+    };
+    
+    //! \todo implement Show and Read
+    //! \todo decide if Enum should be implemented
+    
+    template<typename T>
+    struct Bounded{
+        //T minBound,maxBound()
+        
+        static constexpr bool is_valid = false;
+    }
+    
+    template<typename T>
+    struct Num : public Eq{
+        //T operator+, operator-, operator*(T,T)
+        //T negate(T)
+        //T abs, signum(T)
+        //! \todo Figure out what Integer should be
+        
+        static constexpr bool is_valid = false;
+    }
+    
+    //! \note is not a subclass of Fractional since we haven't implemented Fractional
+    //! \note ** is not a valid operator in C++ so we use pow
+    template<typename T>
+    struct Floating{
+        //T pi()
+        //T exp, log, sqrt(T)
+        //T pow, logBase(T,T)
+        //T sin, cos, tan(T)
+        //T asin, acos, atan(T)
+        //T sinh, cosh, tanh(T)
+        //T asinh, acosh, atanh(T)
+        
+        static constexpr bool is_valid = false;
+    }
+    
 	template<typename T>
 	struct Functor{
 		//T<V> fmap(V(U), T<U>)
