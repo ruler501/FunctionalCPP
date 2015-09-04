@@ -7,6 +7,8 @@
 #include <utility>
 #include <vector>
 
+#include "type_classes.h"
+
 namespace prelude{
 
 /********************************************************************************
