@@ -3,14 +3,17 @@
 
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
-#include "type_classes.h"
+//#include "type_classes.h"
 
 //! \todo Using directives for the missing std library functions so they also appear here
 //! \todo Implement the functions that return functions in some nice way
+//! \todo Implement a function for list comprehensions
+//! \todo Implement the fold1's
 
 namespace prelude{
 
@@ -49,10 +52,19 @@ namespace prelude{
     //! \note I don't think there's a way to do this without modifying an object
     template<typename T>
     std::string show(T a){
-        std::istringstream out;
+        std::ostringstream out;
         out << a;
         return out.str();
     }
+    
+	//! \note Same here as with \a show I don't think you can do it without object modification
+	template<typename T>
+	T read(std::string str){
+		std::istringstream in(str);
+		T out;
+		in >> out;
+		return out;
+	}
 
 /********************************************************************************
  * End Non Functional Section                                         *
@@ -288,6 +300,10 @@ namespace prelude{
     void putStr(std::string str){
         std::cout << str;
     }
+    
+    void putStrLn(std::string str){
+		std::cout << str << std::endl;
+	}
     
     template<typename T>
     T product(std::vector<T> list){
