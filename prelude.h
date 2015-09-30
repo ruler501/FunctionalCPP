@@ -25,11 +25,11 @@ namespace prelude{
     //! \todo make functional. Maybe recursion with flags?
     template<typename T>
     std::ostream& operator<<(std::ostream& stream, std::vector<T> list){
-        stream << "<";
+        stream << "[";
         if(list.size() > 1)
             for(auto i=list.begin(); i != list.end()-1; i++)
                 stream << *i << ", ";
-        return (stream << list.back() << ">");
+        return (stream << list.back() << "]");
     }
      
     //! \todo Not quite functional, but implementing a prepend iterator is hard
@@ -423,8 +423,8 @@ namespace prelude{
     }
 
     template<typename T, typename U>
-    std::vector<U> operator>>(std::vector<T> a, std::vector<U> b){
-        return a >>= [&](std::vector<T> m){return b;};
+    std::ostream& operator<<(std::ostream& stream, std::pair<T,U> tuple){
+        return (stream << '(' << tuple.first << ", " << tuple.second << ")");
     }
 }
 #endif //_PRELUDE_H_

@@ -1,6 +1,8 @@
 #ifndef _TYPE_CLASSES_H_
 #define _TYPE_CLASSES_H_
 
+#include <type_traits>
+
 //! \todo Default implementations?
 //! \todo Compile time checking of requirements
 //! \note Need a Rational type to implement Fractional, Integral, and Real
@@ -23,7 +25,7 @@ namespace prelude{
     };
     
     template<typename T>
-    struct Ord : public Eq{
+    struct Ord : public Eq<T>{
         //Ordering compare(T,T)
         //bool operator<, operator<=, operator>=, operator>(T,T)
         //T max,min(T,T)
@@ -39,17 +41,17 @@ namespace prelude{
         //T minBound,maxBound()
         
         static constexpr bool is_valid = false;
-    }
+    };
     
     template<typename T>
-    struct Num : public Eq{
+    struct Num : public Eq<T>{
         //T operator+, operator-, operator*(T,T)
         //T negate(T)
         //T abs, signum(T)
         //! \todo Figure out what Integer should be
         
         static constexpr bool is_valid = false;
-    }
+    };
     
     //! \note is not a subclass of Fractional since we haven't implemented Fractional
     //! \note ** is not a valid operator in C++ so we use pow
@@ -64,9 +66,9 @@ namespace prelude{
         //T asinh, acosh, atanh(T)
         
         static constexpr bool is_valid = false;
-    }
-    
-	template<typename T>
+    };
+
+	template<template <typename> class T>
 	struct Functor{
 		//T<V> fmap(V(U), T<U>)
 		
@@ -77,8 +79,8 @@ namespace prelude{
 	};
 
 	//! \note <*> is not a valid operator in C++ so we use ap
-	template<typename T>
-	struct Applicative : public Functor{
+	template<template <typename> class T>
+	struct Applicative : public Functor<T>{
 		//T<U> pure(U)
 		//T<V> ap(T<V(U)>, T<U>)
 		
@@ -88,12 +90,17 @@ namespace prelude{
 		//ap(u,ap(v,w)) = ap(ap(ap(pure(compose),u),v),w)
 		
 		static constexpr bool is_valid = false;
-		
 	};
 	
+	template<typename T, template <typename> class M>
+	typename std::enable_if<Applicative<M>::is_valid, M<T>>
+	pure(T a){
+		return M<T>(a);
+	}
+	
 	//! \todo Implement Transformers at some point(after figuring out what they are)
-	template<typename T>
-	struct Monad : public Applicative{
+	template<template <typename> class T>
+	struct Monad : public Applicative<T>{
 		//T<V> operator>>=(T<U>, T<V>(U))
 		//T<V> operator>>(T<U>, T<V>)
 		//T<U> pure(U)
@@ -105,7 +112,12 @@ namespace prelude{
 		
 		static constexpr bool is_valid = false;
 	};
-	
+
+    template<typename T, typename U, template <typename> class M>
+    M<U> operator>>(M<T> a, M<U> b){
+        return a >>= [&](M<T> m){return b;};
+    }
+
 	template<typename T>
 	struct Semigroup{
 		//T mappend(T,T)
@@ -130,7 +142,7 @@ namespace prelude{
 		static constexpr bool is_valid = false;
 	};
 	
-	template<typename T>
+	template<template <typename> class T>
 	struct Foldable{
 		//Monoid<U> => U fold(T<M>)
 		//Monoid<U> => U foldMap(U(V), T<V>, U)
@@ -142,8 +154,8 @@ namespace prelude{
 		static constexpr bool is_valid = false;
 	};
 	
-	template<typename T>
-	struct Traversable : public Functor, public Foldable{
+	template<template <typename> class T>
+	struct Traversable : public Functor<T>, public Foldable<T>{
 		//Applicative<W> => W<T<V> > traverse(W<V>(U), T<U>)
 		//Applicative<W> => W<T<U> > sequenceA(T<W<U> >)
 		//Monad<R> => R<T<V> > mapM(R<V>(U), T<U>)
@@ -156,8 +168,8 @@ namespace prelude{
 	
 	//! \todo Implement a Category and Arrow typeclass. They're scary
 	
-	template<typename T>
-	struct Comonad : public Functor{
+	template<template <typename> class T>
+	struct Comonad : public Functor<T>{
 		//U extract(T<U>)
 		//T<T<U> > duplicate(T<U>)
 		//T<V> extend(V(T<U>), T<U>)

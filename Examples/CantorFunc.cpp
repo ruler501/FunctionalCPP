@@ -15,12 +15,16 @@ using namespace prelude;
  ********************************************************************************/
 
 std::vector<std::pair<Integer, Integer> > generateRationals(Integer qmin, Integer qmax){
-	Integer minV = std::pow(3,qmin);
-	Integer range = std::pow(3,qmax) - minV;
-	std::vector<std::pair<Integer, Integer> > out(range);
-	for(int i=0; i < range; i++)
-		for(int j=0; j < (i+minV)/3; j++)
-			out[i] = std::make_pair(j, i + minV);
+	Integer minV = (Integer)std::pow(3,qmin);
+	Integer maxV = (Integer)std::pow(3,qmax);
+	std::vector<std::pair<Integer, Integer> > out;
+	int c=0;
+	for(int q=0; q < (Integer)std::pow(3,qmax) - minV; q++){
+		out.resize(out.size()+(q+minV)/3);
+		for(Integer p=1; p < (q+minV)/3; p++){
+			out[c++] = std::make_pair(p, q + minV);
+		}
+	}
 	return out;
 }
 
@@ -55,11 +59,23 @@ bool testCantor(std::pair<Integer, Integer> pq){
 int main(int argc, char* argv[]){
 	putStrLn(
 	 show(
+	  generateRationals(
+	      read<Integer>(
+	       std::string(argv[1])
+	      ),
+	      read<Integer>(
+		   std::string(argv[2])
+		  )
+		 )
+		)
+	);
+	putStrLn(
+	 show(
 	  2*foldl(
 	   std::plus<Integer>(),
 	   0,
 	   map(
-	    [](bool v){return (Integer)v;},
+	    [](bool v)->Integer{return v ? 1 : 0;},
 	    map(
 	     testCantor,
 	     generateRationals(
